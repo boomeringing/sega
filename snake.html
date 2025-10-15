@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Growing Arena Snake</title>
+  <style>
+    body {
+      margin: 0;
+      background: #0000aa; /* blue background */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    canvas {
+      background: #0000aa; /* ensure canvas matches body */
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="game" width="200" height="200"></canvas>
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    const tileSize = 20;
+    let tiles = 10; // tiles per side
+    let snake = [
+      {x: 5, y: 5},
+      {x: 4, y: 5},
+      {x: 3, y: 5}
+    ];
+    let vx = 1, vy = 0;
+    let apple = randomApple();
+
+    function randomApple() {
+      let pos;
+      do {
+        pos = {
+          x: Math.floor(Math.random() * tiles),
+          y: Math.floor(Math.random() * tiles)
+        };
+      } while (snake.some(seg => seg.x === pos.x && seg.y === pos.y));
+      return pos;
+    }
+
+    document.addEventListener('keydown', e => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          if (vx !== 1) { vx = -1; vy = 0; }
+          break;
+        case 'ArrowUp':
+          if (vy !== 1) { vx = 0; vy = -1; }
+          break;
+        case 'ArrowRight':
+          if (vx !== -1) { vx = 1; vy = 0; }
+          break;
+        case 'ArrowDown':
+          if (vy !== -1) { vx = 0; vy = 1; }
+          break;
+      }
+    });
+
+    function gameLoop() {
+      const head = { x: snake[0].x + vx, y: snake[0].y + vy };
+
+      if (head.x < 0 || head.y < 0 || head.x >= tiles || head.y >= tiles) {
+        reset();
+        return;
+      }
+
+      snake.unshift(head);
+      snake.pop(); // keep length constant
+
+      if (head.x === apple.x && head.y === apple.y) {
+        tiles += 2; // enlarge arena
+        canvas.width = canvas.height = tiles * tileSize;
+        apple = randomApple();
+      }
+
+      draw();
+    }
+
+    function draw() {
+      ctx.fillStyle = '#0000aa'; // blue background
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = 'red';
+      ctx.fillRect(apple.x * tileSize, apple.y * tileSize, tileSize, tileSize);
+
+      ctx.fillStyle = 'yellow';
+      snake.forEach(seg => {
+        ctx.fillRect(seg.x * tileSize, seg.y * tileSize, tileSize, tileSize);
+      });
+    }
+
+    function reset() {
+      tiles = 10;
+      canvas.width = canvas.height = tiles * tileSize;
+      snake = [
+        {x: 5, y: 5},
+        {x: 4, y: 5},
+        {x: 3, y: 5}
+      ];
+      vx = 1; vy = 0;
+      apple = randomApple();
+    }
+
+    setInterval(gameLoop, 100);
+    draw();
+  </script>
+</body>
+</html>
